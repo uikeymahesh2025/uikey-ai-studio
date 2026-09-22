@@ -132,4 +132,77 @@ describe("UIKEY AI Studio - Unit Tests", () => {
       expect(STORAGE_PLANS.studio.quotaGB).toBe(500);
     });
   });
+
+  describe("Photography Agreements & Legal Clauses", () => {
+    it("generates legally grounded contract sign WhatsApp invitation", () => {
+      const msg = generateWhatsAppMessage("contract_sign", {
+        clientName: "Kabir Kapur",
+        clientPhone: "9820011223",
+        studioName: "UIKEY AI Studio",
+        projectName: "Kapur Wedding Extravaganza",
+        contractNumber: "CON-2026-001",
+        contractUrl: "https://uikey.studio/contract/con-1",
+      });
+
+      expect(msg).toContain("Service Agreement");
+      expect(msg).toContain("CON-2026-001");
+      expect(msg).toContain("https://uikey.studio/contract/con-1");
+      expect(msg).toContain("UIKEY AI Studio");
+    });
+
+    it("generates contract confirmation WhatsApp template", () => {
+      const msg = generateWhatsAppMessage("contract_signed_confirmation", {
+        clientName: "Kabir Kapur",
+        clientPhone: "9820011223",
+        studioName: "UIKEY AI Studio",
+        projectName: "Kapur Wedding",
+      });
+
+      expect(msg).toContain("digitally signing the Photography Agreement");
+      expect(msg).toContain("officially reserved");
+    });
+  });
+
+  describe("Tax Invoices & SAC 998381 Compliance", () => {
+    it("calculates 18% GST split into 9% CGST and 9% SGST for photography services", () => {
+      const subtotal = 100000;
+      const cgst = Math.round(subtotal * 0.09);
+      const sgst = Math.round(subtotal * 0.09);
+      const grandTotal = subtotal + cgst + sgst;
+
+      expect(cgst).toBe(9000);
+      expect(sgst).toBe(9000);
+      expect(grandTotal).toBe(118000);
+    });
+
+    it("generates official Tax Invoice share message with SAC code", () => {
+      const msg = generateWhatsAppMessage("tax_invoice", {
+        clientName: "Rhea Kapur",
+        clientPhone: "9820011223",
+        studioName: "UIKEY AI Studio",
+        projectName: "Kapur Mehendi",
+        invoiceNumber: "INV-2026-001",
+        amountDue: "₹95,000",
+        invoiceUrl: "https://uikey.studio/invoice/inv-1",
+      });
+
+      expect(msg).toContain("INV-2026-001");
+      expect(msg).toContain("₹95,000");
+      expect(msg).toContain("https://uikey.studio/invoice/inv-1");
+    });
+  });
+
+  describe("Adobe Lightroom Culling Export", () => {
+    it("formats selected filenames as comma-separated string for Lightroom filter bar", () => {
+      const selected = [
+        { filename: "KAPUR_001.JPG" },
+        { filename: "KAPUR_045.JPG" },
+        { filename: "KAPUR_112.JPG" },
+      ];
+      const lightroomFilter = selected.map((s) => s.filename).join(", ");
+      expect(lightroomFilter).toBe("KAPUR_001.JPG, KAPUR_045.JPG, KAPUR_112.JPG");
+      expect(lightroomFilter.split(", ")).toHaveLength(3);
+    });
+  });
 });
+

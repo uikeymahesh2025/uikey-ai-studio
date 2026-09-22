@@ -13,6 +13,8 @@ export function formatINR(amount: number): string {
   }).format(amount);
 }
 
+export const formatCurrency = formatINR;
+
 export function formatBytes(bytes: number, decimals = 1): string {
   if (bytes === 0) return "0 B";
   const k = 1024;

@@ -18,6 +18,9 @@ import {
   Clock,
   Sparkles,
   Copy,
+  Settings,
+  Check,
+  Plus,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useStudio } from "@/lib/store/store-context";
@@ -27,18 +30,31 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
 import { createWhatsAppShareUrl, generateWhatsAppMessage } from "@/lib/whatsapp/templates";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function PhotographerGalleryManagePage() {
   const params = useParams();
   const galleryId = params.id as string;
 
-  const { state } = useStudio();
+  const { state, addGalleryImages, updateGallerySettings } = useStudio();
   const { galleries, galleryImages, studio } = state;
 
   const gallery = galleries.find((g) => g.id === galleryId);
   const images = galleryImages[galleryId] || [];
 
   const [activeCategory, setActiveCategory] = useState("all");
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedLightroom, setCopiedLightroom] = useState(false);
+
+  // Upload Photos Modal
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState("Ceremony & Phere");
+  const [sampleUrlInput, setSampleUrlInput] = useState("");
+
+  // Settings Modal
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [watermarkText, setWatermarkText] = useState(gallery?.watermarkText || "PROOF ONLY · UIKEY AI STUDIO");
+  const [watermarkOpacity, setWatermarkOpacity] = useState(gallery?.watermarkOpacity || 0.28);
 
   if (!gallery) {
     return (
@@ -75,6 +91,71 @@ export default function PhotographerGalleryManagePage() {
     return img.category.toLowerCase().includes(activeCategory.toLowerCase());
   });
 
+  const handleCopyLightroom = () => {
+    if (favorites.length === 0) {
+      alert("No photos have been favorited by the client yet.");
+      return;
+    }
+    const filenameList = favorites.map((f) => f.filename).join(", ");
+    navigator.clipboard.writeText(filenameList);
+    setCopiedLightroom(true);
+    setTimeout(() => setCopiedLightroom(false), 2500);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newImgs = Array.from(files).map((file, idx) => {
+      const objUrl = URL.createObjectURL(file);
+      return {
+        filename: file.name,
+        thumbnailUrl: objUrl,
+        previewUrl: objUrl,
+        originalUrl: objUrl,
+        category: uploadCategory,
+        width: 1920,
+        height: 1280,
+        aspectRatio: 1.5,
+        fileSizeBytes: file.size,
+        hidden: false,
+      };
+    });
+
+    addGalleryImages(gallery.id, newImgs);
+    setIsUploadOpen(false);
+  };
+
+  const handleAddSampleUrl = () => {
+    if (!sampleUrlInput.trim()) return;
+    const filename = `CUSTOM_PHOTO_${Date.now()}.JPG`;
+    addGalleryImages(gallery.id, [
+      {
+        filename,
+        thumbnailUrl: sampleUrlInput.trim(),
+        previewUrl: sampleUrlInput.trim(),
+        originalUrl: sampleUrlInput.trim(),
+        category: uploadCategory,
+        width: 1920,
+        height: 1280,
+        aspectRatio: 1.5,
+        fileSizeBytes: 2.4 * 1024 * 1024,
+        hidden: false,
+      },
+    ]);
+    setSampleUrlInput("");
+    setIsUploadOpen(false);
+  };
+
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateGallerySettings(gallery.id, {
+      watermarkText,
+      watermarkOpacity: Number(watermarkOpacity),
+    });
+    setIsSettingsOpen(false);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -101,16 +182,47 @@ export default function PhotographerGalleryManagePage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              onClick={() => setIsUploadOpen(true)}
+              size="sm"
+              className="bg-studio-accent text-studio-bg hover:bg-studio-accent/90 gap-1 text-xs font-medium"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add / Upload Photos</span>
+            </Button>
+
+            <Button
+              onClick={handleCopyLightroom}
+              variant="outline"
+              size="sm"
+              className="gap-1 text-xs border-studio-border"
+              title="Copy selected filenames formatted for Adobe Lightroom Classic filter bar"
+            >
+              {copiedLightroom ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedLightroom ? "Copied Lightroom List!" : "Copy Lightroom Filter"}</span>
+            </Button>
+
+            <Button
               onClick={() => {
                 navigator.clipboard.writeText(publicGalleryUrl);
-                alert("Gallery URL copied!");
+                setCopiedLink(true);
+                setTimeout(() => setCopiedLink(false), 2000);
               }}
               variant="outline"
               size="sm"
-              className="gap-1 text-xs"
+              className="gap-1 text-xs border-studio-border"
             >
-              <Copy className="w-3.5 h-3.5" />
-              <span>Copy Link</span>
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedLink ? "Copied" : "Copy Link"}</span>
+            </Button>
+
+            <Button
+              onClick={() => setIsSettingsOpen(true)}
+              variant="outline"
+              size="sm"
+              className="gap-1 text-xs border-studio-border"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>Watermark</span>
             </Button>
 
             <a
@@ -120,14 +232,14 @@ export default function PhotographerGalleryManagePage() {
             >
               <Button variant="whatsapp" size="sm" className="gap-1.5 text-xs">
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>Share Gallery wa.me</span>
+                <span>Share Gallery</span>
               </Button>
             </a>
 
             <Link href={`/gallery/${gallery.id}`} target="_blank">
-              <Button variant="accent" size="sm" className="gap-1 text-xs">
+              <Button variant="outline" size="sm" className="gap-1 text-xs border-studio-border">
                 <Eye className="w-3.5 h-3.5" />
-                <span>Open Proofing Portal</span>
+                <span>Client View</span>
                 <ExternalLink className="w-3 h-3" />
               </Button>
             </Link>
@@ -136,33 +248,31 @@ export default function PhotographerGalleryManagePage() {
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-studio-card/60 border-studio-border/70">
             <CardContent className="p-4">
-              <span className="text-[11px] text-studio-muted">Total Images</span>
+              <span className="text-[11px] text-studio-muted uppercase tracking-wider">Total Images</span>
               <div className="text-xl font-bold text-studio-primary font-mono mt-0.5">
-                {gallery.totalImages}
+                {images.length}
               </div>
-              <span className="text-[10px] text-studio-muted">
-                Watermarked Proofs
-              </span>
+              <span className="text-[10px] text-studio-muted">Watermarked Proofs</span>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-studio-card/60 border-studio-border/70">
             <CardContent className="p-4">
-              <span className="text-[11px] text-studio-muted">Client Favorites (❤️)</span>
+              <span className="text-[11px] text-studio-muted uppercase tracking-wider">Client Favorites (❤️)</span>
               <div className="text-xl font-bold text-studio-accent font-mono mt-0.5">
-                {gallery.selectedCount} / {gallery.requiredSelectionCount || 50}
+                {favorites.length} / {gallery.requiredSelectionCount || 50}
               </div>
               <span className="text-[10px] text-studio-secondary">
-                {gallery.isSelectionSubmitted ? "✅ Selection Submitted" : "In Progress"}
+                {gallery.isSelectionSubmitted ? "✅ Selection Finalized" : "Selection In Progress"}
               </span>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-studio-card/60 border-studio-border/70">
             <CardContent className="p-4">
-              <span className="text-[11px] text-studio-muted">Watermark</span>
+              <span className="text-[11px] text-studio-muted uppercase tracking-wider">Watermark Text</span>
               <div className="text-xs font-mono font-bold text-studio-secondary truncate mt-1">
                 {gallery.watermarkText}
               </div>
@@ -172,9 +282,9 @@ export default function PhotographerGalleryManagePage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-studio-card/60 border-studio-border/70">
             <CardContent className="p-4">
-              <span className="text-[11px] text-studio-muted">Originals Status</span>
+              <span className="text-[11px] text-studio-muted uppercase tracking-wider">Originals Status</span>
               <div className="text-xs font-bold mt-1">
                 {gallery.downloadsUnlocked ? (
                   <span className="text-studio-success flex items-center gap-1">
@@ -187,7 +297,7 @@ export default function PhotographerGalleryManagePage() {
                 )}
               </div>
               <span className="text-[10px] text-studio-muted">
-                Unlocks automatically upon UTR verification
+                Unlocks upon Bharat UPI settlement
               </span>
             </CardContent>
           </Card>
@@ -197,7 +307,7 @@ export default function PhotographerGalleryManagePage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveCategory("all")}
-            className={`px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               activeCategory === "all"
                 ? "bg-studio-card text-studio-primary border-studio-accent/50"
                 : "border-studio-border bg-studio-surface text-studio-muted hover:text-studio-secondary"
@@ -207,30 +317,32 @@ export default function PhotographerGalleryManagePage() {
           </button>
           <button
             onClick={() => setActiveCategory("favorites")}
-            className={`px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               activeCategory === "favorites"
-                ? "bg-studio-card text-studio-primary border-studio-accent/50"
+                ? "bg-studio-card text-studio-accent border-studio-accent/50 font-bold"
                 : "border-studio-border bg-studio-surface text-studio-muted hover:text-studio-secondary"
             }`}
           >
             Client Picks ❤️ ({favorites.length})
           </button>
-          {gallery.categories.filter((c) => c.id !== "all").map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.name)}
-              className={`px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
-                activeCategory === cat.name
-                  ? "bg-studio-card text-studio-primary border-studio-accent/50"
-                  : "border-studio-border bg-studio-surface text-studio-muted hover:text-studio-secondary"
-              }`}
-            >
-              {cat.name} ({cat.count})
-            </button>
-          ))}
+          {gallery.categories
+            .filter((c) => c.id !== "all")
+            .map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.name)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  activeCategory === cat.name
+                    ? "bg-studio-card text-studio-primary border-studio-accent/50"
+                    : "border-studio-border bg-studio-surface text-studio-muted hover:text-studio-secondary"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
         </div>
 
-        {/* Image Grid with Selection Indicators */}
+        {/* Image Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {filteredImages.map((img) => (
             <div
@@ -246,8 +358,11 @@ export default function PhotographerGalleryManagePage() {
               />
 
               {/* Watermark diagonal overlay hint */}
-              <div className="watermark-overlay opacity-30">
-                <span className="watermark-text text-[10px] text-white/50">
+              <div
+                className="watermark-overlay"
+                style={{ opacity: gallery.watermarkOpacity }}
+              >
+                <span className="watermark-text text-[10px] text-white">
                   {gallery.watermarkText}
                 </span>
               </div>
@@ -281,6 +396,141 @@ export default function PhotographerGalleryManagePage() {
           ))}
         </div>
       </div>
+
+      {/* Upload Photos Modal */}
+      <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+        <DialogContent className="sm:max-w-md bg-studio-card border-studio-border">
+          <DialogHeader>
+            <DialogTitle className="text-base text-studio-primary flex items-center gap-2">
+              <Upload className="w-4 h-4 text-studio-accent" />
+              <span>Add Photos to Proofing Gallery</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-studio-secondary">
+              Upload local photos or add image links. In Demo Mode, local images are read instantly via browser memory at zero external cost.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="text-xs font-medium text-studio-secondary mb-1.5 block">
+                Assign Category Tag
+              </label>
+              <select
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value)}
+                className="w-full h-9 rounded-lg bg-studio-surface border border-studio-border px-3 text-xs text-studio-primary focus:outline-none focus:border-studio-accent"
+              >
+                <option value="Ceremony & Phere">Ceremony & Phere</option>
+                <option value="Bridal Details">Bridal Details</option>
+                <option value="Candid Moments">Candid Moments</option>
+                <option value="Decor & Venue">Decor & Venue</option>
+                <option value="Portraits">Portraits</option>
+                <option value="Reception">Reception</option>
+              </select>
+            </div>
+
+            <div className="p-4 rounded-xl border border-dashed border-studio-border bg-studio-surface/50 text-center space-y-2">
+              <Upload className="w-8 h-8 text-studio-muted mx-auto opacity-50" />
+              <p className="text-xs font-semibold text-studio-primary">Select images from your device</p>
+              <p className="text-[11px] text-studio-muted">JPEG, PNG, WebP supported</p>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="block w-full text-xs text-studio-secondary file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-studio-accent file:text-studio-bg hover:file:bg-studio-accent/90 cursor-pointer pt-2"
+              />
+            </div>
+
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-studio-border" />
+              <span className="flex-shrink mx-2 text-[10px] text-studio-muted uppercase">or paste image URL</span>
+              <div className="flex-grow border-t border-studio-border" />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="https://images.unsplash.com/..."
+                value={sampleUrlInput}
+                onChange={(e) => setSampleUrlInput(e.target.value)}
+                className="bg-studio-surface border-studio-border text-xs h-9"
+              />
+              <Button
+                type="button"
+                onClick={handleAddSampleUrl}
+                size="sm"
+                className="bg-studio-accent text-studio-bg text-xs shrink-0 h-9"
+              >
+                Add URL
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Watermark Settings Modal */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="sm:max-w-md bg-studio-card border-studio-border">
+          <DialogHeader>
+            <DialogTitle className="text-base text-studio-primary flex items-center gap-2">
+              <Settings className="w-4 h-4 text-studio-accent" />
+              <span>Gallery Watermark Protection</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-studio-secondary">
+              Configure diagonal anti-theft watermark text and transparency for this gallery.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveSettings} className="space-y-4 pt-2">
+            <div>
+              <label className="text-xs font-medium text-studio-secondary mb-1.5 block">
+                Watermark Overlay Text
+              </label>
+              <Input
+                value={watermarkText}
+                onChange={(e) => setWatermarkText(e.target.value)}
+                className="bg-studio-surface border-studio-border text-xs h-9 font-mono"
+                required
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs text-studio-secondary mb-1.5">
+                <span>Watermark Opacity</span>
+                <span className="font-mono">{Math.round(watermarkOpacity * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0.10"
+                max="0.60"
+                step="0.02"
+                value={watermarkOpacity}
+                onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
+                className="w-full cursor-pointer accent-studio-accent"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSettingsOpen(false)}
+                className="text-xs border-studio-border"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-studio-accent text-studio-bg hover:bg-studio-accent/90 text-xs"
+              >
+                Save Settings
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

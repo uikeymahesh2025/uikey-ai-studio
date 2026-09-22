@@ -13,6 +13,9 @@ import {
   ActivityLog,
   StorageUsage,
   PhotoSelectionState,
+  Contract,
+  ContractClause,
+  Invoice,
 } from "@/lib/types";
 import { STORAGE_PLANS, calculateStorageWarning } from "@/lib/storage";
 
@@ -668,6 +671,264 @@ export const INITIAL_PAYMENTS: Payment[] = [
   },
 ];
 
+// ============================================================================
+// REALISTIC CONTRACTS & SERVICE AGREEMENTS (INDIAN WEDDINGS)
+// ============================================================================
+
+export const DEFAULT_CONTRACT_CLAUSES: ContractClause[] = [
+  {
+    id: "cl-1",
+    title: "1. Scope of Coverage & Event Timing",
+    content:
+      "The Studio agrees to provide professional photography and cinematography services for the designated dates, venues, and events listed herein. Any extension beyond scheduled shift hours will be billed at standard overtime rates (₹3,000/hr per crew member) with prior verbal concurrence.",
+    isRequired: true,
+  },
+  {
+    id: "cl-2",
+    title: "2. Payment Milestones & Bharat UPI Protocol",
+    content:
+      "A booking advance of 20% is required to reserve the dates exclusively. 60% is payable 48 hours before the principal shoot date. The final 20% balance is payable upon notification of edit completion and prior to delivery of master high-resolution files or album printing. All payments are made via official Bharat UPI or verified bank transfer with a valid 12-digit UTR.",
+    isRequired: true,
+  },
+  {
+    id: "cl-3",
+    title: "3. Delivery Timeline & Quality Handover",
+    content:
+      "Digital watermarked proofing gallery will be delivered within 14 calendar days of shoot conclusion for client selection. Upon receipt of final client selections, color-graded and retouched high-resolution images will be delivered within 30 to 45 days. Hardcover flush-mount albums (if contracted) require an additional 21 days for physical print binding and courier dispatch.",
+    isRequired: true,
+  },
+  {
+    id: "cl-4",
+    title: "4. RAW Camera Files Policy",
+    content:
+      "In accordance with standard industry practice, raw unprocessed camera digital negative files (CR3/ARW/NEF/LOG) are proprietary archival assets of the Studio and are not included in standard deliverables. Client receives master full-resolution color-corrected JPEGs and edited 4K video exports.",
+    isRequired: true,
+  },
+  {
+    id: "cl-5",
+    title: "5. Crew Hospitality & Outstation Travel",
+    content:
+      "For events exceeding 4 continuous hours, Client shall provide hot meals and drinking water for all assigned crew members. For outstation destination assignments, Client shall provide hotel accommodation (minimum 3-star standard) and round-trip transportation/flights for the crew.",
+    isRequired: true,
+  },
+  {
+    id: "cl-6",
+    title: "6. Drone Operations & Venue Permissions",
+    content:
+      "Aerial drone videography is subject to prevailing weather, local airspace regulations (DGCA Red/Yellow zones), and venue permissions. The Studio cannot be held liable if venue management, heritage authorities, or local police prohibit drone flights.",
+    isRequired: false,
+  },
+  {
+    id: "cl-7",
+    title: "7. Postponement & Cancellation",
+    content:
+      "The 20% booking advance is non-refundable as the Studio declines other prospective inquiries for reserved dates. In case of genuine unforeseen events or force majeure, client may postpone the dates once within 6 months at no penalty, subject to mutual date availability.",
+    isRequired: true,
+  },
+  {
+    id: "cl-8",
+    title: "8. Copyright & Studio Portfolio Usage",
+    content:
+      "The Client is granted perpetual, non-exclusive rights for personal reproduction, printing, and social media sharing. The Studio reserves the moral copyright and artistic right to showcase selected photographs in its professional portfolio, website, and competition entries, with due respect to client privacy.",
+    isRequired: true,
+  },
+];
+
+export const INITIAL_CONTRACTS: Contract[] = [
+  {
+    id: "con-1",
+    contractNumber: "CON-2026-001",
+    studioId: "studio-1",
+    projectId: "p-1",
+    projectName: "Kapur · Mehendi & Wedding",
+    clientId: "c-1",
+    clientName: "Rhea & Kabir Kapur",
+    clientPhone: "+91 98200 11223",
+    clientEmail: "rhea.kapur@gmail.com",
+    status: "signed",
+    totalAmount: 190000,
+    advanceAmount: 95000,
+    eventDates: ["2026-11-14", "2026-11-15"],
+    venues: ["The Taj Mahal Palace, Colaba, Mumbai", "Bayview Lawns, Mazgaon"],
+    deliverables: [
+      "Traditional & Candid Photography (2 Photographers)",
+      "Cinematic 4K Wedding Film (3-5 mins highlight + 45 min full film)",
+      "Premium 40-sheet Leatherette Flush Mount Album (12x36)",
+      "Watermarked Online Proofing Gallery with Selection Tool",
+      "Full Resolution Color Graded Master JPEGs on Cloud Drive",
+    ],
+    rawFilesPolicy: "Master high-resolution JPEGs delivered. RAW digital negatives retained by studio.",
+    travelTerms: "Local Mumbai assignment. Meals provided on venue.",
+    cancellationPolicy: "20% non-refundable advance. Date postponement permitted with 30-day notice.",
+    clauses: DEFAULT_CONTRACT_CLAUSES,
+    signedByName: "Kabir Kapur",
+    signedAt: "2026-08-04T13:15:00Z",
+    signatureDataUrl:
+      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60'><path d='M10 40 Q 50 10, 90 35 T 180 20' stroke='%23C4B5FD' fill='none' stroke-width='3'/></svg>",
+    clientIp: "103.21.124.89",
+    createdAt: "2026-08-03T10:00:00Z",
+    updatedAt: "2026-08-04T13:15:00Z",
+  },
+  {
+    id: "con-2",
+    contractNumber: "CON-2026-002",
+    studioId: "studio-1",
+    projectId: "p-2",
+    projectName: "Saanvi Portraits",
+    clientId: "c-2",
+    clientName: "Saanvi Malhotra",
+    clientPhone: "+91 98765 43210",
+    clientEmail: "saanvi.m@outlook.com",
+    status: "signed",
+    totalAmount: 35000,
+    advanceAmount: 20000,
+    eventDates: ["2026-09-02"],
+    venues: ["Studio 4, Bandra West, Mumbai"],
+    deliverables: [
+      "3-hour Fashion / Fine-Art Portrait Session",
+      "25 Master Retouched High-Resolution Files",
+      "Online Proofing Gallery with 150 Watermarked Previews",
+      "Commercial & Social Media Portfolio Usage Rights",
+    ],
+    rawFilesPolicy: "25 retouched master JPEGs delivered. Additional retouched images @ ₹800/image.",
+    travelTerms: "In-studio shoot.",
+    cancellationPolicy: "Advance non-refundable. Rescheduling permitted once with 48-hr notice.",
+    clauses: DEFAULT_CONTRACT_CLAUSES,
+    signedByName: "Saanvi Malhotra",
+    signedAt: "2026-08-21T09:30:00Z",
+    signatureDataUrl:
+      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60'><path d='M10 45 Q 60 5, 110 30 T 190 25' stroke='%23C4B5FD' fill='none' stroke-width='3'/></svg>",
+    clientIp: "115.99.14.22",
+    createdAt: "2026-08-20T11:45:00Z",
+    updatedAt: "2026-08-21T09:30:00Z",
+  },
+  {
+    id: "con-3",
+    contractNumber: "CON-2026-003",
+    studioId: "studio-1",
+    projectId: "p-4",
+    projectName: "Mehra · Wedding Extravaganza",
+    clientId: "c-4",
+    clientName: "Pooja & Sameer Mehra",
+    clientPhone: "+91 98190 66554",
+    clientEmail: "pooja.mehra@gmail.com",
+    status: "sent",
+    totalAmount: 280000,
+    advanceAmount: 70000,
+    eventDates: ["2026-12-18", "2026-12-19", "2026-12-20"],
+    venues: ["ITC Grand Central, Parel, Mumbai", "St. Regis Mumbai, Lower Parel"],
+    deliverables: [
+      "Full 3-Day Wedding Coverage (Sangeet, Phere, Reception)",
+      "4-person crew: 2 Candid Photographers, 1 Traditional Videographer, 1 Drone Specialist",
+      "4K Cinematic Film (5 min teaser + 60 min narrative documentary)",
+      "Two Premium 12x36 Handcrafted Flush Mount Leather Albums (50 sheets each)",
+      "Fast-Track 10-day Selection Proofing Gallery with Watermarking",
+      "Archival Delivery on Custom Wooden USB + Permanent Cloud Gallery",
+    ],
+    rawFilesPolicy: "All color graded final master JPEGs delivered on USB + Cloud. RAWs excluded.",
+    travelTerms: "Mumbai venue hospitality and crew hot meals to be arranged by client.",
+    cancellationPolicy: "20% advance non-refundable to hold dates.",
+    clauses: DEFAULT_CONTRACT_CLAUSES,
+    createdAt: "2026-09-15T14:20:00Z",
+    updatedAt: "2026-09-15T14:20:00Z",
+  },
+];
+
+// ============================================================================
+// REALISTIC TAX INVOICES & RECEIPTS (GST SAC 998381)
+// ============================================================================
+
+export const INITIAL_INVOICES: Invoice[] = [
+  {
+    id: "inv-1",
+    invoiceNumber: "INV-2026-001",
+    studioId: "studio-1",
+    projectId: "p-1",
+    projectName: "Kapur · Mehendi",
+    clientId: "c-1",
+    clientName: "Rhea & Kabir Kapur",
+    clientPhone: "+91 98200 11223",
+    clientEmail: "rhea.kapur@gmail.com",
+    clientAddress: "Altamount Road, Mumbai, Maharashtra 400026",
+    items: [
+      {
+        id: "ii-1",
+        description: "Booking Advance: 2-Day Candid Photography & Cinematic Highlights (SAC 998381)",
+        sacCode: "998381",
+        quantity: 1,
+        unitPrice: 80508,
+        totalPrice: 80508,
+      },
+    ],
+    subtotal: 80508,
+    includeGst: true,
+    gstRate: 18,
+    cgstAmount: 7246,
+    sgstAmount: 7246,
+    igstAmount: 0,
+    grandTotal: 95000,
+    paidAmount: 95000,
+    balanceDue: 0,
+    dueDate: "2026-08-05",
+    status: "paid",
+    upiId: "uikeystudio@upi",
+    bankDetails: {
+      bankName: "HDFC Bank Ltd",
+      accountNumber: "50200084729104",
+      ifscCode: "HDFC0000019",
+      accountName: "UIKEY AI STUDIO LLP",
+      branch: "Fort Branch, Mumbai",
+    },
+    notes: "Payment received via Bharat UPI (UTR: 421589129045). Thank you for your business!",
+    terms: "Official Tax Receipt for Commercial & Event Photography Services. HSN/SAC 998381.",
+    createdAt: "2026-08-04T13:00:00Z",
+  },
+  {
+    id: "inv-2",
+    invoiceNumber: "INV-2026-002",
+    studioId: "studio-1",
+    projectId: "p-3",
+    projectName: "Nair · Reception",
+    clientId: "c-3",
+    clientName: "Isha & Aditya Nair",
+    clientPhone: "+91 99300 88776",
+    clientEmail: "isha.nair@gmail.com",
+    clientAddress: "Hiranandani Gardens, Powai, Mumbai 400076",
+    items: [
+      {
+        id: "ii-2",
+        description: "Complete Wedding & Reception Photography Package (SAC 998381)",
+        sacCode: "998381",
+        quantity: 1,
+        unitPrice: 152542,
+        totalPrice: 152542,
+      },
+    ],
+    subtotal: 152542,
+    includeGst: true,
+    gstRate: 18,
+    cgstAmount: 13729,
+    sgstAmount: 13729,
+    igstAmount: 0,
+    grandTotal: 180000,
+    paidAmount: 180000,
+    balanceDue: 0,
+    dueDate: "2026-08-18",
+    status: "paid",
+    upiId: "uikeystudio@upi",
+    bankDetails: {
+      bankName: "HDFC Bank Ltd",
+      accountNumber: "50200084729104",
+      ifscCode: "HDFC0000019",
+      accountName: "UIKEY AI STUDIO LLP",
+      branch: "Fort Branch, Mumbai",
+    },
+    notes: "Full payment settled via Bharat UPI (UTR: 420199847123). Master files unlocked.",
+    terms: "Tax Invoice issued per GST Act 2017. Photographic and Videographic Services.",
+    createdAt: "2026-08-18T11:30:00Z",
+  },
+];
+
 // SAMPLE HIGH-RES UNSPLASH PHOTOGRAPHY FOR PROOFING GALLERIES
 const SAMPLE_GALLERY_IMAGES: GalleryImage[] = [
   {
@@ -1140,6 +1401,8 @@ export interface StudioStoreState {
   projects: Project[];
   quotations: Quotation[];
   payments: Payment[];
+  contracts: Contract[];
+  invoices: Invoice[];
   galleries: Gallery[];
   galleryImages: Record<string, GalleryImage[]>; // keyed by galleryId
   calendarEvents: CalendarEvent[];
@@ -1149,14 +1412,18 @@ export interface StudioStoreState {
   storageUsage: StorageUsage;
 }
 
-export const STORAGE_KEY = "uikey_studio_demo_state_v1";
+export const STORAGE_KEY = "uikey_studio_demo_state_v2";
 
 export function getInitialState(): StudioStoreState {
   if (typeof window !== "undefined") {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Ensure contracts and invoices exist if migrating from v1
+        if (!parsed.contracts) parsed.contracts = INITIAL_CONTRACTS;
+        if (!parsed.invoices) parsed.invoices = INITIAL_INVOICES;
+        return parsed;
       }
     } catch {
       // ignore
@@ -1170,6 +1437,8 @@ export function getInitialState(): StudioStoreState {
     projects: INITIAL_PROJECTS,
     quotations: INITIAL_QUOTATIONS,
     payments: INITIAL_PAYMENTS,
+    contracts: INITIAL_CONTRACTS,
+    invoices: INITIAL_INVOICES,
     galleries: INITIAL_GALLERIES,
     galleryImages: {
       "g-1": SAMPLE_GALLERY_IMAGES,

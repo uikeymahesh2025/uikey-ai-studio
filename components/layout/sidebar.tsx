@@ -18,6 +18,8 @@ import {
   Camera,
   Sparkles,
   ExternalLink,
+  FileCheck,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StorageMeter } from "./storage-meter";
@@ -32,6 +34,8 @@ export function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void }) {
     { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { label: "Projects", href: "/dashboard/projects", icon: FolderKanban },
     { label: "Quotations", href: "/dashboard/quotations", icon: FileText },
+    { label: "Contracts", href: "/dashboard/contracts", icon: FileCheck },
+    { label: "Tax Invoices", href: "/dashboard/invoices", icon: Receipt },
     { label: "Clients & CRM", href: "/dashboard/clients", icon: Users },
     { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   ];

@@ -17,6 +17,11 @@ import {
   PhotoSelectionState,
   Studio,
   LeadStatus,
+  Contract,
+  Invoice,
+  InvoiceStatus,
+  Gallery,
+  GalleryImage,
 } from "@/lib/types";
 
 interface StudioContextType {
@@ -36,6 +41,13 @@ interface StudioContextType {
   addPhotoComment: (galleryId: string, imageId: string, authorName: string, text: string) => void;
   submitGallerySelection: (galleryId: string) => void;
   updateStudio: (updates: Partial<Studio>) => void;
+  addContract: (contract: Omit<Contract, "id" | "studioId" | "createdAt" | "updatedAt">) => Contract;
+  updateContract: (id: string, updates: Partial<Contract>) => void;
+  signContract: (id: string, signatureData: { signedByName: string; signatureDataUrl: string; clientIp?: string }) => void;
+  addInvoice: (invoice: Omit<Invoice, "id" | "studioId" | "createdAt">) => Invoice;
+  updateInvoiceStatus: (id: string, status: InvoiceStatus) => void;
+  addGalleryImages: (galleryId: string, newImages: Omit<GalleryImage, "id" | "galleryId" | "comments" | "selectionState">[]) => void;
+  updateGallerySettings: (galleryId: string, updates: Partial<Gallery>) => void;
   addInquiryLead: (inquiry: {
     name: string;
     phone: string;
@@ -474,6 +486,180 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
+  const addContract = (data: Omit<Contract, "id" | "studioId" | "createdAt" | "updatedAt">): Contract => {
+    const newContract: Contract = {
+      ...data,
+      id: `con-${Date.now()}`,
+      studioId: state.studio.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setState((prev) => ({
+      ...prev,
+      contracts: [newContract, ...prev.contracts],
+      activityLogs: [
+        {
+          id: `act-${Date.now()}`,
+          studioId: prev.studio.id,
+          actorName: prev.studio.ownerName,
+          action: "Generated Photography Agreement",
+          target: newContract.projectName,
+          timestamp: new Date().toISOString(),
+        },
+        ...prev.activityLogs,
+      ],
+    }));
+    return newContract;
+  };
+
+  const updateContract = (id: string, updates: Partial<Contract>) => {
+    setState((prev) => ({
+      ...prev,
+      contracts: prev.contracts.map((c) =>
+        c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c
+      ),
+    }));
+  };
+
+  const signContract = (
+    id: string,
+    signatureData: { signedByName: string; signatureDataUrl: string; clientIp?: string }
+  ) => {
+    setState((prev) => {
+      const contract = prev.contracts.find((c) => c.id === id);
+      const updatedContracts = prev.contracts.map((c) =>
+        c.id === id
+          ? {
+              ...c,
+              status: "signed" as const,
+              signedByName: signatureData.signedByName,
+              signatureDataUrl: signatureData.signatureDataUrl,
+              clientIp: signatureData.clientIp || "Verified Client Browser",
+              signedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
+          : c
+      );
+
+      // Automatically update project checklist: contractAccepted = true
+      const updatedProjects = prev.projects.map((p) =>
+        p.id === contract?.projectId
+          ? {
+              ...p,
+              checklist: {
+                ...p.checklist,
+                contractAccepted: true,
+              },
+            }
+          : p
+      );
+
+      return {
+        ...prev,
+        contracts: updatedContracts,
+        projects: updatedProjects,
+        notifications: [
+          {
+            id: `notif-${Date.now()}`,
+            studioId: prev.studio.id,
+            title: "Agreement Digitally Signed",
+            message: `${signatureData.signedByName} signed the Photography Agreement for ${contract?.projectName || "their shoot"}.`,
+            type: "contract",
+            linkUrl: `/dashboard/contracts/${id}`,
+            read: false,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev.notifications,
+        ],
+        activityLogs: [
+          {
+            id: `act-${Date.now()}`,
+            studioId: prev.studio.id,
+            actorName: signatureData.signedByName,
+            action: "Digitally signed Photography Agreement for",
+            target: contract?.projectName || "Shoot",
+            timestamp: new Date().toISOString(),
+          },
+          ...prev.activityLogs,
+        ],
+      };
+    });
+  };
+
+  const addInvoice = (data: Omit<Invoice, "id" | "studioId" | "createdAt">): Invoice => {
+    const newInvoice: Invoice = {
+      ...data,
+      id: `inv-${Date.now()}`,
+      studioId: state.studio.id,
+      createdAt: new Date().toISOString(),
+    };
+    setState((prev) => ({
+      ...prev,
+      invoices: [newInvoice, ...prev.invoices],
+      activityLogs: [
+        {
+          id: `act-${Date.now()}`,
+          studioId: prev.studio.id,
+          actorName: prev.studio.ownerName,
+          action: "Issued Tax Invoice",
+          target: newInvoice.invoiceNumber,
+          timestamp: new Date().toISOString(),
+        },
+        ...prev.activityLogs,
+      ],
+    }));
+    return newInvoice;
+  };
+
+  const updateInvoiceStatus = (id: string, status: InvoiceStatus) => {
+    setState((prev) => ({
+      ...prev,
+      invoices: prev.invoices.map((inv) => (inv.id === id ? { ...inv, status } : inv)),
+    }));
+  };
+
+  const addGalleryImages = (
+    galleryId: string,
+    newImages: Omit<GalleryImage, "id" | "galleryId" | "comments" | "selectionState">[]
+  ) => {
+    setState((prev) => {
+      const existingImages = prev.galleryImages[galleryId] || [];
+      const added: GalleryImage[] = newImages.map((img, idx) => ({
+        ...img,
+        id: `img-${Date.now()}-${idx}`,
+        galleryId,
+        selectionState: "unrated",
+        comments: [],
+      }));
+
+      const allImages = [...existingImages, ...added];
+      const updatedGalleries = prev.galleries.map((g) =>
+        g.id === galleryId
+          ? {
+              ...g,
+              totalImages: allImages.length,
+            }
+          : g
+      );
+
+      return {
+        ...prev,
+        galleries: updatedGalleries,
+        galleryImages: {
+          ...prev.galleryImages,
+          [galleryId]: allImages,
+        },
+      };
+    });
+  };
+
+  const updateGallerySettings = (galleryId: string, updates: Partial<Gallery>) => {
+    setState((prev) => ({
+      ...prev,
+      galleries: prev.galleries.map((g) => (g.id === galleryId ? { ...g, ...updates } : g)),
+    }));
+  };
+
   const resetToDemo = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY);
@@ -500,6 +686,13 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         addPhotoComment,
         submitGallerySelection,
         updateStudio,
+        addContract,
+        updateContract,
+        signContract,
+        addInvoice,
+        updateInvoiceStatus,
+        addGalleryImages,
+        updateGallerySettings,
         addInquiryLead,
         resetToDemo,
       }}

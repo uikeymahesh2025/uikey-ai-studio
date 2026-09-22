@@ -15,6 +15,11 @@ export interface WhatsAppTemplateParams {
   quoteId?: string;
   quoteTotal?: string;
   quoteUrl?: string;
+  contractUrl?: string;
+  contractNumber?: string;
+  invoiceUrl?: string;
+  invoiceNumber?: string;
+  portalUrl?: string;
   galleryId?: string;
   galleryUrl?: string;
   selectionDeadline?: string;
@@ -27,6 +32,10 @@ export interface WhatsAppTemplateParams {
 export type WhatsAppTemplateType =
   | "new_quotation"
   | "quotation_reminder"
+  | "contract_sign"
+  | "contract_signed_confirmation"
+  | "tax_invoice"
+  | "client_portal"
   | "gallery_ready"
   | "selection_reminder"
   | "payment_reminder"
@@ -54,6 +63,11 @@ export function generateWhatsAppMessage(type: WhatsAppTemplateType, params: What
     projectName = "your upcoming shoot",
     quoteTotal = "",
     quoteUrl = "",
+    contractUrl = "",
+    contractNumber = "",
+    invoiceUrl = "",
+    invoiceNumber = "",
+    portalUrl = "",
     galleryUrl = "",
     amountDue = "",
     upiId = "",
@@ -67,6 +81,18 @@ export function generateWhatsAppMessage(type: WhatsAppTemplateType, params: What
 
     case "quotation_reminder":
       return `Hi ${clientName} ji! Hope you are having a wonderful week.\n\nJust following up regarding the photography proposal we shared for ${projectName}.\n\n📄 Quotation Link: ${quoteUrl}\n\nOur dates for the season fill up quickly. Please let us know if you'd like to confirm or modify any deliverables!\n\nBest,\n*${studioName}*`;
+
+    case "contract_sign":
+      return `Namaste ${clientName} ji! ✍️📜\n\nWe have prepared the Photography Service Agreement for *${projectName}*:\n\n📑 Contract: ${contractNumber || "Service Agreement"}\n🔗 Review & Digitally Sign: ${contractUrl}\n\nPlease review the deliverables, delivery timeline, and shoot terms, and complete the digital sign to lock your dates.\n\nWarmly,\n*${studioName}*`;
+
+    case "contract_signed_confirmation":
+      return `Hi ${clientName} ji! 🎉\n\nThank you for digitally signing the Photography Agreement for *${projectName}*.\n\nYour shoot dates and deliverables are officially reserved on our calendar. We are super excited to capture your story!\n\nBest regards,\n*${studioName}*`;
+
+    case "tax_invoice":
+      return `Namaste ${clientName} ji, 🙏\n\nPlease find your official Tax Invoice / Receipt for *${projectName}*:\n\n🧾 Invoice: ${invoiceNumber || "Tax Invoice"}\n💰 Amount: ${amountDue}\n🔗 View & Download PDF Invoice: ${invoiceUrl}\n\nThank you for choosing *${studioName}*!\n\nWarm regards,\n*${studioName}*`;
+
+    case "client_portal":
+      return `Namaste ${clientName} ji! 🌟\n\nHere is your personal studio hub for *${projectName}*:\n\n📱 Studio Client Hub: ${portalUrl}\n\nYou can access your quotation, signed contract, selection gallery, and payment ledger in one place anytime.\n\nWarm regards,\n*${studioName}*`;
 
     case "gallery_ready":
       return `Exciting news, ${clientName} ji! ✨📸\n\nYour proofing gallery for *${projectName}* is now live!\n\n🔗 View Gallery & Make Selections:\n${galleryUrl}\n\n💡 *How to select:*\n• Tap ❤️ to Favorite your must-haves\n• Add notes/comments directly to specific photos\n• Submit your final selection when ready\n\nEnjoy reliving these memories!\n*${studioName}*`;

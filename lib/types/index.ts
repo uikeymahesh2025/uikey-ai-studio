@@ -344,7 +344,7 @@ export interface Notification {
   studioId: string;
   title: string;
   message: string;
-  type: "inquiry" | "quote" | "payment" | "gallery" | "system";
+  type: "inquiry" | "quote" | "payment" | "gallery" | "system" | "contract" | "invoice";
   linkUrl?: string;
   read: boolean;
   createdAt: string;
@@ -358,3 +358,98 @@ export interface ActivityLog {
   target: string;
   timestamp: string;
 }
+
+// ============================================================================
+// CONTRACTS & SERVICE AGREEMENTS
+// ============================================================================
+
+export type ContractStatus = "draft" | "sent" | "signed" | "declined";
+
+export interface ContractClause {
+  id: string;
+  title: string;
+  content: string;
+  isRequired: boolean;
+}
+
+export interface Contract {
+  id: string;
+  contractNumber: string; // e.g. "CON-2024-001"
+  studioId: string;
+  projectId: string;
+  projectName: string;
+  clientId: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string;
+  status: ContractStatus;
+  totalAmount: number;
+  advanceAmount: number;
+  eventDates: string[];
+  venues: string[];
+  deliverables: string[];
+  rawFilesPolicy: string;
+  travelTerms: string;
+  cancellationPolicy: string;
+  clauses: ContractClause[];
+  signedByName?: string;
+  signedAt?: string;
+  signatureDataUrl?: string;
+  clientIp?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
+// TAX INVOICES & PAYMENT RECEIPTS (GST / SAC 998381)
+// ============================================================================
+
+export type InvoiceStatus = "draft" | "issued" | "paid" | "partially_paid" | "cancelled";
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  sacCode: string; // "998381"
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string; // e.g. "INV-2024-001"
+  studioId: string;
+  projectId: string;
+  projectName: string;
+  clientId: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string;
+  clientGstin?: string;
+  clientAddress?: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  includeGst: boolean;
+  gstRate: number; // 18%
+  cgstAmount: number; // 9%
+  sgstAmount: number; // 9%
+  igstAmount: number;
+  grandTotal: number;
+  paidAmount: number;
+  balanceDue: number;
+  dueDate: string;
+  status: InvoiceStatus;
+  upiId: string;
+  bankDetails: {
+    bankName: string;
+    accountNumber: string;
+    ifscCode: string;
+    accountName: string;
+    branch: string;
+  };
+  notes: string;
+  terms: string;
+  createdAt: string;
+}
+
