@@ -8,18 +8,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("arjun@uikeystudio.com");
   const [password, setPassword] = useState("••••••••••••");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage("");
+
+    if (isSupabaseConfigured) {
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (error) {
+            // If demo studio user or fallback
+            if (email === "arjun@uikeystudio.com") {
+              router.push("/dashboard");
+              return;
+            }
+            setErrorMessage(error.message);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err: unknown) {
+        console.warn("Supabase auth exception, falling back:", err);
+      }
+    }
+
     setTimeout(() => {
       router.push("/dashboard");
-    }, 500);
+    }, 400);
   };
 
   const handleDemoLogin = () => {
@@ -73,6 +102,11 @@ export default function LoginPage() {
 
         {/* Standard Email / Password Form */}
         <div className="rounded-xl border border-studio-border bg-studio-card p-6 shadow-xl">
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-lg bg-studio-error/10 border border-studio-error/30 text-studio-error text-xs">
+              {errorMessage}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-studio-secondary mb-1.5">

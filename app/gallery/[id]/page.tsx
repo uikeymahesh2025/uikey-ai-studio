@@ -95,11 +95,82 @@ export default function PublicProofingGalleryPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightboxIndex, displayedImages]);
 
+  // Gallery PIN Privacy Lock State
+  const [isUnlocked, setIsUnlocked] = useState(!gallery?.pin);
+  const [enteredPin, setEnteredPin] = useState("");
+  const [pinError, setPinError] = useState(false);
+
   if (!gallery) {
     return (
       <div className="min-h-screen bg-studio-bg flex items-center justify-center p-4">
         <div className="text-center">
           <p className="text-sm text-studio-muted">Gallery not found or invalid link.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (gallery.pin && !isUnlocked) {
+    const handlePinSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (enteredPin.trim() === gallery.pin) {
+        setIsUnlocked(true);
+        setPinError(false);
+      } else {
+        setPinError(true);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-studio-bg flex items-center justify-center p-4">
+        <div className="w-full max-w-sm rounded-xl border border-studio-border bg-studio-card p-6 shadow-2xl text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-studio-surface text-studio-accent border border-studio-border">
+            <Lock className="h-6 w-6" />
+          </div>
+          <span className="text-[11px] font-mono text-studio-accent uppercase tracking-wider font-semibold">
+            PIN Protected
+          </span>
+          <h1 className="text-lg font-bold text-studio-primary mt-1">
+            Private Proofing Gallery
+          </h1>
+          <p className="mt-1.5 text-xs text-studio-secondary leading-relaxed">
+            This proofing gallery for <strong>{gallery.clientName}</strong> is secured with a PIN by {studio.name}.
+          </p>
+
+          <form onSubmit={handlePinSubmit} className="mt-5 space-y-4">
+            <div>
+              <Input
+                type="password"
+                maxLength={6}
+                placeholder="Enter 4-digit PIN"
+                value={enteredPin}
+                onChange={(e) => {
+                  setEnteredPin(e.target.value);
+                  setPinError(false);
+                }}
+                className="text-center text-lg tracking-widest font-mono font-semibold"
+                autoFocus
+              />
+              {pinError && (
+                <p className="text-[11px] text-studio-error mt-1.5 font-medium">
+                  Incorrect PIN. Please check and try again.
+                </p>
+              )}
+            </div>
+
+            <Button type="submit" variant="accent" className="w-full font-semibold">
+              Unlock Gallery
+            </Button>
+          </form>
+
+          <div className="mt-4 p-2.5 rounded-lg bg-studio-surface/50 border border-studio-border/50 text-left">
+            <div className="flex items-center justify-between text-[11px] text-studio-muted">
+              <span>Demo Security PIN:</span>
+              <span className="font-mono font-bold text-studio-primary bg-studio-card px-1.5 py-0.5 rounded border border-studio-border">
+                {gallery.pin}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     );

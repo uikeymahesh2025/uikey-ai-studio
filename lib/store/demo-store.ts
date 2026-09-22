@@ -1123,6 +1123,7 @@ export const INITIAL_GALLERIES: Gallery[] = [
     isSelectionSubmitted: true,
     submittedAt: "2026-09-21T15:30:00Z",
     downloadsUnlocked: false, // will unlock when payment pay-1 is verified
+    pin: "4321",
     expiryDate: "2026-10-31",
     createdAt: "2026-09-10T10:00:00Z",
   },

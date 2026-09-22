@@ -273,6 +273,7 @@ export interface Gallery {
   isSelectionSubmitted: boolean;
   submittedAt?: string;
   downloadsUnlocked: boolean;
+  pin?: string;
   expiryDate: string;
   createdAt: string;
 }

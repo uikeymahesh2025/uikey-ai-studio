@@ -136,114 +136,129 @@ export default function PaymentsDeskPage() {
           />
         </div>
 
-        {/* Payments Table / Cards */}
-        <div className="space-y-3">
-          {filteredPayments.map((p) => {
-            const isPending = p.status === "UTR submitted" || p.status === "Pending";
-            return (
-              <Card
-                key={p.id}
-                className={`transition-all ${
-                  isPending ? "border-studio-warning/40 bg-studio-card" : "border-studio-border bg-studio-surface/30"
-                }`}
-              >
-                <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-sm font-bold text-studio-primary">
-                        {p.projectName}
-                      </span>
-                      <Badge
-                        variant={
-                          p.status === "Verified"
-                            ? "success"
-                            : p.status === "Rejected"
-                            ? "error"
-                            : "warning"
-                        }
-                      >
-                        {p.status}
-                      </Badge>
-                      {p.downloadsUnlocked && (
-                        <span className="text-[10px] text-studio-success flex items-center gap-1">
-                          <Unlock className="w-3 h-3" /> Master Downloads Unlocked
+        {/* Payments Table / Cards / Empty State */}
+        {filteredPayments.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-studio-border bg-studio-surface/40 p-12 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-studio-card text-studio-muted border border-studio-border">
+              <Search className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-bold text-studio-primary">No payments found</h3>
+            <p className="text-xs text-studio-muted mt-1 max-w-sm mx-auto">
+              No payments match &quot;{searchQuery}&quot;. Try checking the spelling, project name, or 12-digit UTR reference number.
+            </p>
+            {searchQuery && (
+              <div className="mt-4">
+                <Button
+                  onClick={() => setSearchQuery("")}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  Clear search
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredPayments.map((p) => {
+              const isPending = p.status === "UTR submitted" || p.status === "Pending";
+              return (
+                <Card
+                  key={p.id}
+                  className={`transition-all ${
+                    isPending ? "border-studio-warning/40 bg-studio-card" : "border-studio-border bg-studio-surface/30"
+                  }`}
+                >
+                  <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-sm font-bold text-studio-primary">
+                          {p.projectName}
                         </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-studio-secondary">
-                      Client: <strong className="text-studio-primary">{p.clientName}</strong> · Milestone: {p.milestoneTitle}
-                    </p>
-                    {p.utrNumber ? (
-                      <p className="text-xs font-mono text-studio-accent">
-                        UTR: <strong>{p.utrNumber}</strong>
-                        {p.submittedAt && (
-                          <span className="text-studio-muted font-sans ml-2">
-                            ({formatDate(p.submittedAt)})
+                        <Badge
+                          variant={
+                            p.status === "Verified"
+                              ? "success"
+                              : p.status === "Rejected"
+                              ? "error"
+                              : "warning"
+                          }
+                        >
+                          {p.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-studio-secondary">
+                        {p.clientName} · {p.milestoneTitle}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-studio-muted pt-1">
+                        <span>Submitted: {formatDate(p.submittedAt || p.createdAt)}</span>
+                        {p.utrNumber && (
+                          <span className="font-mono bg-studio-surface px-1.5 py-0.5 rounded border border-studio-border text-studio-primary">
+                            UTR: {p.utrNumber}
                           </span>
                         )}
-                      </p>
-                    ) : (
-                      <p className="text-[11px] text-studio-muted">No UTR submitted yet</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between sm:justify-end gap-4">
-                    <div className="text-left sm:text-right">
-                      <span className="text-base font-bold text-studio-primary font-mono block">
-                        {formatINR(p.amount)}
-                      </span>
-                      <span className="text-[10px] text-studio-muted">
-                        VPA: {p.upiId}
-                      </span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {p.receiptUrl && (
-                        <Button
-                          onClick={() => setSelectedReceipt(p)}
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs gap-1"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View Receipt</span>
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-base font-bold font-mono text-studio-primary">
+                          {formatINR(p.amount)}
+                        </div>
+                        <span className="text-[10px] text-studio-muted">
+                          {p.upiId}
+                        </span>
+                      </div>
 
-                      {isPending && (
-                        <>
+                      <div className="flex items-center gap-2">
+                        {p.receiptUrl && (
                           <Button
-                            onClick={() => setRejectingPayment(p)}
-                            variant="danger"
+                            onClick={() => setSelectedReceipt(p)}
+                            variant="outline"
                             size="sm"
-                            className="h-8 text-xs"
+                            className="h-8 text-xs gap-1 text-studio-secondary"
                           >
-                            Reject
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Slip</span>
                           </Button>
-                          <Button
-                            onClick={() => handleVerify(p.id)}
-                            variant="accent"
-                            size="sm"
-                            className="h-8 text-xs gap-1 font-semibold"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Verify & Unlock</span>
-                          </Button>
-                        </>
-                      )}
+                        )}
 
-                      <Link href={`/payment/${p.id}`} target="_blank">
-                        <Button variant="ghost" size="sm" className="h-8 text-xs p-2 text-studio-muted">
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </Button>
-                      </Link>
+                        {isPending && (
+                          <>
+                            <Button
+                              onClick={() => setRejectingPayment(p)}
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs text-studio-error hover:bg-studio-error/10"
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              onClick={() => handleVerify(p.id)}
+                              variant="accent"
+                              size="sm"
+                              className="h-8 text-xs gap-1 font-semibold"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Verify & Unlock</span>
+                            </Button>
+                          </>
+                        )}
+
+                        <Link href={`/payment/${p.id}`} target="_blank">
+                          <Button variant="ghost" size="sm" className="h-8 text-xs p-2 text-studio-muted">
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Receipt Screenshot Modal */}

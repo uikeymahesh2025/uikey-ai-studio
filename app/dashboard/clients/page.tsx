@@ -169,91 +169,127 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* Client Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredClients.map((c) => {
-            const defaultMsg = `Namaste ${c.name} ji! Reaching out from ${studio.name} regarding your ${c.eventType}. How can we assist you today?`;
-            return (
-              <Card
-                key={c.id}
-                className="hover:border-studio-borderHover transition-all flex flex-col justify-between"
+        {/* Client Cards Grid / Empty State */}
+        {filteredClients.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-studio-border bg-studio-surface/40 p-12 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-studio-card text-studio-muted border border-studio-border">
+              <Search className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-bold text-studio-primary">No clients found</h3>
+            <p className="text-xs text-studio-muted mt-1 max-w-sm mx-auto">
+              No clients or leads match &quot;{searchQuery || selectedStatus}&quot;. Try clearing your search or add a new client inquiry.
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {(searchQuery || selectedStatus !== "all") && (
+                <Button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedStatus("all");
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  Clear filters
+                </Button>
+              )}
+              <Button
+                onClick={() => setShowAddModal(true)}
+                variant="accent"
+                size="sm"
+                className="gap-1.5 text-xs"
               >
-                <CardHeader className="p-5 pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/dashboard/clients/${c.id}`}
-                          className="text-sm font-bold text-studio-primary hover:text-studio-accent transition-colors"
-                        >
-                          {c.name}
-                        </Link>
-                        {getStatusBadge(c.status)}
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Client</span>
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredClients.map((c) => {
+              const defaultMsg = `Namaste ${c.name} ji! Reaching out from ${studio.name} regarding your ${c.eventType}. How can we assist you today?`;
+              return (
+                <Card
+                  key={c.id}
+                  className="hover:border-studio-borderHover transition-all flex flex-col justify-between"
+                >
+                  <CardHeader className="p-5 pb-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/dashboard/clients/${c.id}`}
+                            className="text-sm font-bold text-studio-primary hover:text-studio-accent transition-colors"
+                          >
+                            {c.name}
+                          </Link>
+                          {getStatusBadge(c.status)}
+                        </div>
+                        <p className="text-xs text-studio-secondary mt-0.5">
+                          {c.eventType} · {c.phone}
+                        </p>
                       </div>
-                      <p className="text-xs text-studio-secondary mt-0.5">
-                        {c.eventType} · {c.phone}
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="p-5 pt-0 space-y-3">
+                    <div className="text-xs text-studio-muted space-y-1 bg-studio-surface/50 p-2.5 rounded-md border border-studio-border/50">
+                      <div className="flex items-center justify-between">
+                        <span>Event Date:</span>
+                        <span className="text-studio-secondary font-medium">
+                          {formatDate(c.eventDate)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Venue:</span>
+                        <span className="text-studio-secondary truncate max-w-[180px]">
+                          {c.venue || "To be confirmed"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Estimated Value:</span>
+                        <span className="text-studio-primary font-mono font-medium">
+                          {formatINR(c.totalProjectValue)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {c.notes && (
+                      <p className="text-[11px] text-studio-muted line-clamp-2 italic">
+                        &quot;{c.notes}&quot;
                       </p>
-                    </div>
-                  </div>
-                </CardHeader>
+                    )}
 
-                <CardContent className="p-5 pt-0 space-y-3">
-                  <div className="text-xs text-studio-muted space-y-1 bg-studio-surface/50 p-2.5 rounded-md border border-studio-border/50">
-                    <div className="flex items-center justify-between">
-                      <span>Event Date:</span>
-                      <span className="text-studio-secondary font-medium">
-                        {formatDate(c.eventDate)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Venue:</span>
-                      <span className="text-studio-secondary truncate max-w-[180px]">
-                        {c.venue || "To be confirmed"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Estimated Value:</span>
-                      <span className="text-studio-primary font-mono font-medium">
-                        {formatINR(c.totalProjectValue)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {c.notes && (
-                    <p className="text-[11px] text-studio-muted line-clamp-2 italic">
-                      &quot;{c.notes}&quot;
-                    </p>
-                  )}
-
-                  {/* Actions: Manual WhatsApp wa.me & View Profile */}
-                  <div className="flex items-center justify-between pt-3 border-t border-studio-border/60">
-                    <a
-                      href={createWhatsAppShareUrl(c.whatsappNumber, defaultMsg)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Button
-                        variant="whatsapp"
-                        size="sm"
-                        className="h-7 text-[11px] gap-1 px-2.5"
+                    {/* Actions: Manual WhatsApp wa.me & View Profile */}
+                    <div className="flex items-center justify-between pt-3 border-t border-studio-border/60">
+                      <a
+                        href={createWhatsAppShareUrl(c.whatsappNumber, defaultMsg)}
+                        target="_blank"
+                        rel="noreferrer"
                       >
-                        <MessageSquare className="w-3 h-3" />
-                        <span>WhatsApp</span>
-                      </Button>
-                    </a>
+                        <Button
+                          variant="whatsapp"
+                          size="sm"
+                          className="h-7 text-[11px] gap-1 px-2.5"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          <span>WhatsApp</span>
+                        </Button>
+                      </a>
 
-                    <Link href={`/dashboard/clients/${c.id}`}>
-                      <Button variant="secondary" size="sm" className="h-7 text-[11px] gap-1">
-                        <span>Profile & History</span>
-                        <ArrowUpRight className="w-3 h-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      <Link href={`/dashboard/clients/${c.id}`}>
+                        <Button variant="secondary" size="sm" className="h-7 text-[11px] gap-1">
+                          <span>Profile & History</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Add Client Dialog Modal */}
